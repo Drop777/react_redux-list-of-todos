@@ -1,8 +1,7 @@
 import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 
-const USER_API = 'https://jsonplaceholder.typicode.com/users';
-const TODOS_API = 'https://jsonplaceholder.typicode.com/todos';
+const BASE_URL = 'https://jsonplaceholder.typicode.com';
 
 const START_LOADING = 'START_LOADING';
 const HANDLE_SECCESS = 'HANDLE_SUCCESS';
@@ -34,25 +33,22 @@ export const sortByCompleted = () => ({
   type: SORT_BY_COMPLETED,
 });
 
-// eslint-disable-next-line arrow-body-style
-export const loadTodos = () => {
-  return (dispatch) => {
-    dispatch(startLoading());
+export const loadTodos = () => (dispatch) => {
+  dispatch(startLoading());
 
-    return Promise.all([fetch(USER_API), fetch(TODOS_API)])
-      .then(responses => Promise.all(responses.map(respons => respons.json())))
-      .then(([usersDate, todosDate]) => {
-        const todos = todosDate.map(item => (
-          {
-            ...item,
-            user: usersDate.find(user => user.id === item.userId),
-          }
-        ));
-        console.log(todos);
-        dispatch(handleSeccess(todos));
-      })
-      .catch(() => dispatch(handleErorr()));
-  };
+  return Promise.all([fetch(`${BASE_URL}/users`), fetch(`${BASE_URL}/todos`)])
+    .then(responses => Promise.all(responses
+      .map(response => response.json())))
+    .then(([usersDate, todosDate]) => {
+      const todos = todosDate.map(item => (
+        {
+          ...item,
+          user: usersDate.find(user => user.id === item.userId),
+        }
+      ));
+      dispatch(handleSeccess(todos));
+    })
+    .catch(() => dispatch(handleErorr()));
 };
 
 const initialState = {
@@ -64,7 +60,6 @@ const initialState = {
 };
 
 const reducer = (state = initialState, action) => {
-  console.log(state.todos);
   switch (action.type) {
     case START_LOADING:
       return {
